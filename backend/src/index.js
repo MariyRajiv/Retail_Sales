@@ -9,7 +9,7 @@ const app = express();
 
 // Enable CORS for your frontend
 app.use(cors({
-  origin: 'http://localhost:5173', // allow only your frontend
+  origin: 'https://retail-sales-frontend.onrender.com', // allow only your frontend
   credentials: true // if you plan to send cookies/auth headers
 }));
 
@@ -27,3 +27,4 @@ connectDB()
   .catch(err => {
     console.error('Failed to connect to DB', err);
   });
+
