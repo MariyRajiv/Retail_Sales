@@ -9,7 +9,7 @@ const app = express();
 
 // Enable CORS for your frontend
 app.use(cors({
-  origin: 'https://sales-frontend-pbyn.onrender.com', // allow only your frontend
+  origin: 'https://retail-sales-frontend.onrender.com', // allow only your frontend
   credentials: true // if you plan to send cookies/auth headers
 }));
 
