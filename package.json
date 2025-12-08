@@ -1,5 +1,0 @@
-{
-  "name": "retailsales",
-  "private": true,
-  "workspaces": ["backend", "frontend"]
-}
