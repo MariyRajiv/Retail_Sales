@@ -18,7 +18,7 @@ export default function Home() {
   const [endDate, setEndDate] = useState("");
 
   // SORT FIX — use string "field:order"
-  const [sortBy, setSortBy] = useState("date:desc"); 
+const [sortBy, setSortBy] = useState([]);
 
   const [page, setPage] = useState(1);
   const pageSize = 10;
@@ -51,7 +51,7 @@ export default function Home() {
         endDate,
 
         // FIX: send sortBy directly ex: "date:asc"
-        sortBy  
+        sortBy: sortBy.join(","), 
       },
     });
 
@@ -124,64 +124,68 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      <Navbar />
-      <div className="flex flex-row">
-        <Sidebar />
+   <div className="min-h-screen bg-gray-100 flex flex-col">
+  <Navbar />
 
-        <div className="flex-1 p-6 space-y-5">
-          <TopFilters
-            search={search} setSearch={setSearch}
-            customerRegion={customerRegion} setCustomerRegion={setCustomerRegion}
-            gender={gender} setGender={setGender}
-            ageRange={ageRange} setAgeRange={setAgeRange}
-            productCategory={productCategory} setProductCategory={setProductCategory}
-            tags={tags} setTags={setTags}
-            paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
+  <div className="flex flex-row flex-1">
+    {/* Sidebar */}
+    <div className="flex-shrink-0 w-45">
+      <Sidebar />
+    </div>
 
-            startDate={startDate} setStartDate={setStartDate}
-            endDate={endDate} setEndDate={setEndDate}
+    {/* Main content */}
+    <div className="flex-1 flex flex-col overflow-x-auto p-6 space-y-5">
+      {/* Filters */}
+      <TopFilters
+        search={search} setSearch={setSearch}
+        customerRegion={customerRegion} setCustomerRegion={setCustomerRegion}
+        gender={gender} setGender={setGender}
+        ageRange={ageRange} setAgeRange={setAgeRange}
+        productCategory={productCategory} setProductCategory={setProductCategory}
+        tags={tags} setTags={setTags}
+        paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
+        startDate={startDate} setStartDate={setStartDate}
+        endDate={endDate} setEndDate={setEndDate}
+        sortBy={sortBy} setSortBy={setSortBy}
+        onFetchData={fetchSales}
+        onReset={resetAll}
+      />
 
-            sortBy={sortBy} setSortBy={setSortBy}
-            onFetchData={fetchSales}
-            onReset={resetAll}
-          />
+      {/* Summary cards */}
+      <div className="grid grid-cols-3 gap-4 min-w-max">
+        <div className="bg-white shadow-sm border rounded-md p-4">
+          <div className="text-gray-500 text-sm">Total Units Sold</div>
+          <div className="text-2xl font-semibold mt-1">{totalUnits}</div>
+        </div>
 
-          {/* SUMMARY CARDS */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white shadow-sm border rounded-md p-4">
-              <div className="text-gray-500 text-sm">Total Units Sold</div>
-              <div className="text-2xl font-semibold mt-1">{totalUnits}</div>
-            </div>
-
-            <div className="bg-white shadow-sm border rounded-md p-4">
-              <div className="text-gray-500 text-sm">Total Amount</div>
-              <div className="text-xl mt-1 font-semibold">
-                ₹{totalAmount?.toLocaleString()}
-              </div>
-            </div>
-
-            <div className="bg-white shadow-sm border rounded-md p-4">
-              <div className="text-gray-500 text-sm">Total Discount</div>
-              <div className="text-xl mt-1 font-semibold">
-                ₹{totalDiscount?.toLocaleString()}
-              </div>
-            </div>
+        <div className="bg-white shadow-sm border rounded-md p-4">
+          <div className="text-gray-500 text-sm">Total Amount</div>
+          <div className="text-xl mt-1 font-semibold">
+            ₹{totalAmount?.toLocaleString()}
           </div>
+        </div>
 
-          {/* SALES TABLE */}
-          <div ref={tableRef} className="overflow-hidden">
-            <SalesList
-              items={items}
-              total={totalCount}
-              page={page}
-              setPage={setPage}
-              pageSize={pageSize}
-            />
+        <div className="bg-white shadow-sm border rounded-md p-4">
+          <div className="text-gray-500 text-sm">Total Discount</div>
+          <div className="text-xl mt-1 font-semibold">
+            ₹{totalDiscount?.toLocaleString()}
           </div>
-
         </div>
       </div>
+
+      {/* Table */}
+      <div ref={tableRef} className="overflow-x-auto">
+        <SalesList
+          items={items}
+          total={totalCount}
+          page={page}
+          setPage={setPage}
+          pageSize={pageSize}
+        />
+      </div>
     </div>
+  </div>
+</div>
+
   );
 }
