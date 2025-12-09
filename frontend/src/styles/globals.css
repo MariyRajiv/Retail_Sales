@@ -8,17 +8,17 @@ body {
 }
 
 /* Sidebar */
-.sidebar {
+/* .sidebar {
   @apply fixed top-0 left-0 h-screen w-64 bg-tru-navy text-white flex flex-col p-6 space-y-4;
-}
+} */
 
-.sidebar a {
+/* .sidebar a {
   @apply transition-colors duration-200 font-medium;
 }
 
 .sidebar a:hover {
   @apply text-tru-badge;
-}
+} */
 
 /* Header */
 .header {
@@ -101,3 +101,29 @@ body {
 }
 
 /* Animations */
+
+/* Main menu item */
+.menu-item {
+  @apply flex items-center gap-3 p-2 rounded cursor-pointer text-[14px] hover:bg-gray-100;
+}
+
+/* Expandable section header */
+.menu-expand {
+  @apply flex items-center justify-between p-2 rounded cursor-pointer hover:bg-gray-100;
+}
+
+/* Section background box EXACT like screenshot */
+.section-box {
+  @apply ml-6 mt-2 bg-white p-2 rounded-lg space-y-2;
+}
+
+
+/* Sub-items inside box */
+.sub-item {
+  @apply flex items-center gap-3 p-1 rounded cursor-pointer text-[14px] hover:bg-gray-200;
+}
+
+/* Highlighted active item (gray filled) */
+.active-sub-item {
+  @apply bg-gray-200 font-medium;
+}
