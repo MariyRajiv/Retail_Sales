@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/SideBar";
 import TopFilters from "../components/TopFilters";
 import SalesList from "../components/SalesList";
+import SummaryCards from "../components/SummaryCards";
 import api from "../services/api";
 
 export default function Home() {
@@ -22,9 +23,13 @@ export default function Home() {
 
   const [items, setItems] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [totalUnits, setTotalUnits] = useState(0);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [totalDiscount, setTotalDiscount] = useState(0);
+  const [summary, setSummary] = useState({
+    totalUnitsSold: 0,
+    totalAmount: 0,
+    totalDiscount: 0
+  });
+
+  const tableRef = useRef(null);
 
   // --------------------------
   // FETCH SALES LIST
@@ -34,13 +39,13 @@ export default function Home() {
     let sortOrder = "";
 
     if (sortBy) {
-      const parts = sortBy.split("_"); // e.g., ["CustomerName", "asc"]
+      const parts = sortBy.split("_");
       const fieldMap = {
         Date: "date",
         Quantity: "quantity",
         CustomerName: "customerName"
       };
-      sortField = fieldMap[parts[0]] || "date"; // map to exact DB field
+      sortField = fieldMap[parts[0]] || "date";
       sortOrder = parts[1] || "asc";
     }
 
@@ -64,6 +69,10 @@ export default function Home() {
 
     setItems(res.data.results || []);
     setTotalCount(res.data.total || 0);
+
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   // --------------------------
@@ -84,14 +93,13 @@ export default function Home() {
       },
     });
 
-    setTotalUnits(res.data.totalUnitsSold || 0);
-    setTotalAmount(res.data.totalAmount || 0);
-    setTotalDiscount(res.data.totalDiscount || 0);
+    setSummary({
+      totalUnitsSold: Math.round(res.data.totalUnitsSold || 0),
+      totalAmount: Math.round(res.data.totalAmount || 0),
+      totalDiscount: Math.round(res.data.totalDiscount || 0),
+    });
   };
 
-  // --------------------------
-  // EFFECT
-  // --------------------------
   useEffect(() => {
     fetchSales();
     fetchSummaryData();
@@ -109,9 +117,6 @@ export default function Home() {
     sortBy,
   ]);
 
-  // --------------------------
-  // RESET ALL FILTERS
-  // --------------------------
   const resetAll = () => {
     setSearch("");
     setCustomerRegion("");
@@ -147,29 +152,18 @@ export default function Home() {
           />
 
           {/* SUMMARY CARDS */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white shadow-sm border rounded-md p-4">
-              <div className="text-gray-500 text-sm">Total Units Sold</div>
-              <div className="text-2xl font-semibold mt-1">{totalUnits}</div>
-            </div>
-            <div className="bg-white shadow-sm border rounded-md p-4">
-              <div className="text-gray-500 text-sm">Total Amount</div>
-              <div className="text-xl mt-1 font-semibold">₹{totalAmount?.toLocaleString()}</div>
-            </div>
-            <div className="bg-white shadow-sm border rounded-md p-4">
-              <div className="text-gray-500 text-sm">Total Discount</div>
-              <div className="text-xl mt-1 font-semibold">₹{totalDiscount?.toLocaleString()}</div>
-            </div>
-          </div>
+          <SummaryCards summary={summary} />
 
           {/* SALES TABLE */}
-          <SalesList
-            items={items}
-            total={totalCount}
-            page={page}
-            setPage={setPage}
-            pageSize={pageSize}
-          />
+          <div ref={tableRef} className="overflow-hidden">
+            <SalesList
+              items={items}
+              total={totalCount}
+              page={page}
+              setPage={setPage}
+              pageSize={pageSize}
+            />
+          </div>
         </div>
       </div>
     </div>
