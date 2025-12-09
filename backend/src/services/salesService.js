@@ -97,3 +97,4 @@ async function summary(params) {
 }
 
 module.exports = { querySales, summary };
+
