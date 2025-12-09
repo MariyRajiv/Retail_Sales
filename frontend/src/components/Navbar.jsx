@@ -7,9 +7,8 @@ export default function Navbar() {
       {/* Left */}
       <div className="flex items-center gap-3">
         <img
-          src="/profile.png"
+          src="https://cdn-icons-png.flaticon.com/512/2620/2620308.png"
           className="w-8 h-8"
-          alt = "Profile"
         />
         <h1 className="text-xl font-semibold tracking-wide">
           TruEstate <span className="font-light">Retail Sales</span>
