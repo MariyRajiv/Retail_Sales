@@ -15,16 +15,16 @@ export default function SalesList({ items, total, page, setPage, pageSize }) {
       <table className="min-w-[1200px] divide-y divide-gray-200 table-auto">
         <thead className="bg-gray-50 sticky top-0 z-20">
           <tr>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[120px]">Transaction ID</th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[120px]">Date</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[120px] whitespace-nowrap">Transaction ID</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[120px] whitespace-nowrap">Date</th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[60px]">Age</th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[120px]">Customer Region</th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[120px]">Customer ID</th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[150px]">Customer Name</th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[140px]">Phone Number</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[120px] whitespace-nowrap">Customer Region</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[120px] whitespace-nowrap">Customer ID</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[150px] whitespace-nowrap">Customer Name</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[140px] whitespace-nowrap">Phone Number</th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[80px]">Gender</th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[150px]">Product Category</th>
-            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[150px]">Employee Name</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[150px] whitespace-nowrap">Product Category</th>
+            <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[150px] whitespace-nowrap">Employee Name</th>
             <th className="px-4 py-2 text-left text-sm font-medium text-gray-500 min-w-[80px]">Quantity</th>
           </tr>
         </thead>
@@ -70,3 +70,4 @@ export default function SalesList({ items, total, page, setPage, pageSize }) {
 
   );
 }
+
