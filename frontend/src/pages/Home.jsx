@@ -7,27 +7,24 @@ import api from "../services/api";
 
 export default function Home() {
   const [search, setSearch] = useState("");
-  const [customerRegion, setCustomerRegion] = useState([]);
-  const [gender, setGender] = useState([]);
-  const [ageRange, setAgeRange] = useState([]);
-  const [productCategory, setProductCategory] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [paymentMethod, setPaymentMethod] = useState([]);
+  const [customerRegion, setCustomerRegion] = useState("");
+  const [gender, setGender] = useState("");
+  const [ageRange, setAgeRange] = useState("");
+  const [productCategory, setProductCategory] = useState("");
+  const [tags, setTags] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [sortBy, setSortBy] = useState("");
 
   const [page, setPage] = useState(1);
-  const pageSize = 25;
+  const pageSize = 10;
 
   const [items, setItems] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [summary, setSummary] = useState({
-    totalUnitsSold: 0,
-    totalAmount: 0,
-    totalFinalAmount: 0,
-    totalDiscount: 0,
-  });
+  const [totalUnits, setTotalUnits] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [totalDiscount, setTotalDiscount] = useState(0);
 
   // --------------------------
   // FETCH SALES LIST
@@ -37,9 +34,14 @@ export default function Home() {
     let sortOrder = "";
 
     if (sortBy) {
-      const parts = sortBy.split("_");
-      sortField = parts[0].toLowerCase();
-      sortOrder = parts[1];
+      const parts = sortBy.split("_"); // e.g., ["CustomerName", "asc"]
+      const fieldMap = {
+        Date: "date",
+        Quantity: "quantity",
+        CustomerName: "customerName"
+      };
+      sortField = fieldMap[parts[0]] || "date"; // map to exact DB field
+      sortOrder = parts[1] || "asc";
     }
 
     const res = await api.get("/sales", {
@@ -47,12 +49,12 @@ export default function Home() {
         page,
         pageSize,
         search,
-        customerRegion: customerRegion.join(","), 
-        gender: gender.join(","),
-        ageRange: ageRange.join(","),
-        productCategory: productCategory.join(","),
-        tags: tags.join(","),
-        paymentMethod: paymentMethod.join(","),
+        customerRegion,
+        gender,
+        ageRange,
+        productCategory,
+        tags,
+        paymentMethod,
         startDate,
         endDate,
         sortBy: sortField,
@@ -71,25 +73,25 @@ export default function Home() {
     const res = await api.get("/sales/summary", {
       params: {
         search,
-        customerRegion: customerRegion.join(","),
-        gender: gender.join(","),
-        ageRange: ageRange.join(","),
-        productCategory: productCategory.join(","),
-        tags: tags.join(","),
-        paymentMethod: paymentMethod.join(","),
+        customerRegion,
+        gender,
+        ageRange,
+        productCategory,
+        tags,
+        paymentMethod,
         startDate,
         endDate,
       },
     });
 
-    setSummary({
-      totalUnitsSold: res.data.totalUnitsSold || 0,
-      totalAmount: res.data.totalAmount || 0,
-      totalFinalAmount: res.data.totalFinalAmount || 0,
-      totalDiscount: res.data.totalDiscount || 0,
-    });
+    setTotalUnits(res.data.totalUnitsSold || 0);
+    setTotalAmount(res.data.totalAmount || 0);
+    setTotalDiscount(res.data.totalDiscount || 0);
   };
 
+  // --------------------------
+  // EFFECT
+  // --------------------------
   useEffect(() => {
     fetchSales();
     fetchSummaryData();
@@ -107,14 +109,17 @@ export default function Home() {
     sortBy,
   ]);
 
+  // --------------------------
+  // RESET ALL FILTERS
+  // --------------------------
   const resetAll = () => {
     setSearch("");
-    setCustomerRegion([]);
-    setGender([]);
-    setAgeRange([]);
-    setProductCategory([]);
-    setTags([]);
-    setPaymentMethod([]);
+    setCustomerRegion("");
+    setGender("");
+    setAgeRange("");
+    setProductCategory("");
+    setTags("");
+    setPaymentMethod("");
     setStartDate("");
     setEndDate("");
     setSortBy("");
@@ -145,20 +150,26 @@ export default function Home() {
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-white shadow-sm border rounded-md p-4">
               <div className="text-gray-500 text-sm">Total Units Sold</div>
-              <div className="text-2xl font-semibold mt-1">{summary.totalUnitsSold}</div>
+              <div className="text-2xl font-semibold mt-1">{totalUnits}</div>
             </div>
             <div className="bg-white shadow-sm border rounded-md p-4">
               <div className="text-gray-500 text-sm">Total Amount</div>
-              <div className="text-xl mt-1 font-semibold">₹{summary.totalAmount?.toLocaleString()}</div>
+              <div className="text-xl mt-1 font-semibold">₹{totalAmount?.toLocaleString()}</div>
             </div>
             <div className="bg-white shadow-sm border rounded-md p-4">
               <div className="text-gray-500 text-sm">Total Discount</div>
-              <div className="text-xl mt-1 font-semibold">₹{summary.totalDiscount?.toLocaleString()}</div>
+              <div className="text-xl mt-1 font-semibold">₹{totalDiscount?.toLocaleString()}</div>
             </div>
           </div>
 
           {/* SALES TABLE */}
-          <SalesList items={items} total={totalCount} page={page} setPage={setPage} pageSize={pageSize} />
+          <SalesList
+            items={items}
+            total={totalCount}
+            page={page}
+            setPage={setPage}
+            pageSize={pageSize}
+          />
         </div>
       </div>
     </div>
