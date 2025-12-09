@@ -35,28 +35,25 @@ const [sortBy, setSortBy] = useState([]);
   // --------------------------
   // FETCH SALES LIST
   // --------------------------
-  const fetchSales = async () => {
-    const res = await api.get("/sales", {
-      params: {
-        page,
-        pageSize,
-        search,
-        customerRegion,
-        gender,
-        ageRange,
-        productCategory,
-        tags,
-        paymentMethod,
-        startDate,
-        endDate,
+ const fetchSummaryData = async () => {
+  const res = await api.get("/sales/summary", {
+    params: {
+      search,
+      customerRegion,
+      gender,
+      ageRange,
+      productCategory,
+      tags,
+      paymentMethod,
+      startDate,
+      endDate,
+    },
+  });
 
-        // FIX: send sortBy directly ex: "date:asc"
-        sortBy: sortBy.join(","), 
-      },
-    });
-
-    setItems(res.data.results || []);
-    setTotalCount(res.data.total || 0);
+  // Apply Math.ceil() here to make sure the values are rounded up before passing to the component
+  setTotalUnits(res.data.totalUnitsSold ? Math.round(res.data.totalUnitsSold) : 0);
+  setTotalAmount(res.data.totalAmount ? Math.round(res.data.totalAmount) : 0);
+  setTotalDiscount(res.data.totalDiscount ? Math.ceil(res.data.totalDiscount) : 0); // Apply Math.ceil() her
 
     if (tableRef.current) {
       tableRef.current.scrollIntoView({ behavior: "smooth" });
@@ -189,4 +186,5 @@ const [sortBy, setSortBy] = useState([]);
 
   );
 }
+
 
