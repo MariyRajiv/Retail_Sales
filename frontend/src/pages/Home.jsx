@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import Navbar from "../components/Navbar";
+
 import Sidebar from "../components/SideBar";
 import TopFilters from "../components/TopFilters";
 import SalesList from "../components/SalesList";
@@ -125,7 +125,7 @@ const [sortBy, setSortBy] = useState([]);
 
   return (
    <div className="min-h-screen bg-gray-100 flex flex-col">
-  <Navbar />
+
 
   <div className="flex flex-row flex-1">
     {/* Sidebar */}
@@ -189,3 +189,4 @@ const [sortBy, setSortBy] = useState([]);
 
   );
 }
+
