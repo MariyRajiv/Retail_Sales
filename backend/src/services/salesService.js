@@ -1,30 +1,24 @@
 const Sale = require('../models/Sales');
 const buildQuery = require('../utils/buildQuery');
 
-async function querySales({ params, page, pageSize, sortBy, sortOrder }) {
+async function querySales({ params, page, pageSize, sort }) {
   const query = buildQuery(params);
 
-  // ------------------------
-  // FIELD TYPES
-  // ------------------------
-  const numericFields = ["quantity", "totalAmount", "finalAmount", "age"];
-  const stringFields = ["customerName", "productName", "productCategory", "paymentMethod", "gender", "customerRegion"];
-  const dateFields = ["date"];
+  // --------------------------------------
+  // FIELDS CATEGORIES
+  // --------------------------------------
+  const stringFields = [
+    "customerName",
+    "productName",
+    "productCategory",
+    "paymentMethod",
+    "gender",
+    "customerRegion"
+  ];
 
-  let sort = {};
-
-  if (dateFields.includes(sortBy)) {
-    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
-  } else if (numericFields.includes(sortBy)) {
-    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
-  } else if (stringFields.includes(sortBy)) {
-    // Use collation for case-insensitive string sorting
-    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
-  } else {
-    // Default sort by date descending
-    sort.date = -1;
-  }
-
+  // --------------------------------------
+  // PROJECTION
+  // --------------------------------------
   const projection = {
     transactionId: 1,
     date: 1,
@@ -40,26 +34,28 @@ async function querySales({ params, page, pageSize, sortBy, sortOrder }) {
     totalAmount: 1,
     finalAmount: 1,
     paymentMethod: 1,
-    employeeName: 1
+    employeeName: 1,
+    tags: 1
   };
 
   const skip = (page - 1) * pageSize;
 
-  let cursor;
+  // --------------------------------------
+  // APPLY COLLATION **IF ANY STRING FIELD IS IN SORT**
+  // --------------------------------------
+  const sortFields = Object.keys(sort);
+  const requiresCollation = sortFields.some(f => stringFields.includes(f));
 
-  if (stringFields.includes(sortBy)) {
-    // Case-insensitive string sorting
-    cursor = Sale.find(query, projection)
-      .collation({ locale: "en", strength: 2 }) // ensures A-Z / a-z treated the same
-      .sort(sort)
-      .skip(skip)
-      .limit(pageSize);
-  } else {
-    cursor = Sale.find(query, projection)
-      .sort(sort)
-      .skip(skip)
-      .limit(pageSize);
+  let cursor = Sale.find(query, projection);
+
+  if (requiresCollation) {
+    cursor = cursor.collation({ locale: "en", strength: 2 });
   }
+
+  cursor = cursor
+    .sort(sort)           // ✔ Now multi-sort works
+    .skip(skip)
+    .limit(pageSize);
 
   const results = await cursor.exec();
   const total = await Sale.countDocuments(query);
@@ -67,9 +63,6 @@ async function querySales({ params, page, pageSize, sortBy, sortOrder }) {
   return { results, total, page, pageSize };
 }
 
-// ------------------------
-// SUMMARY
-// ------------------------
 async function summary(params) {
   const query = buildQuery(params);
 
