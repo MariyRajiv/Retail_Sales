@@ -66,3 +66,4 @@ export default function Pagination({ page, setPage, total, pageSize }) {
     </div>
   );
 }
+
