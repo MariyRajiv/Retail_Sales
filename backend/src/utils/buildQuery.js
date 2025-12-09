@@ -7,46 +7,57 @@ function parseCommaList(str) {
 function buildQuery(params) {
   const query = {};
 
-  // --------- Helper to convert CSV -> array ----------
-  const parseList = (val) =>
-    typeof val === "string"
-      ? val.split(",").map((v) => v.trim()).filter((v) => v)
-      : [];
+  // search: full-text search on customerName and phoneNumber
+// search: case-insensitive match on customerName and phoneNumber
+  if (params.search) {
+    const searchRegex = new RegExp(params.search, 'i'); // case-insensitive
+    query.$or = [
+      { customerName: searchRegex },
+      { phoneNumber: searchRegex }
+    ];
+  }
 
-  // ---------------- GENDER ----------------
+
+  // Multi-selects
+  if (params.customerRegion) {
+    const arr = parseCommaList(params.customerRegion);
+    if (arr && arr.length) query.customerRegion = { $in: arr };
+  }
   if (params.gender) {
-    const arr = parseList(params.gender);
-    if (arr.length) query.gender = { $in: arr };
+    const arr = parseCommaList(params.gender);
+    if (arr && arr.length) query.gender = { $in: arr };
   }
-
-  // ---------------- AGE ----------------
-  if (params.age) {
-    const arr = parseList(params.age).map(Number);
-    if (arr.length) query.age = { $in: arr };
-  }
-
-  // ---------------- PRODUCT CATEGORY ----------------
   if (params.productCategory) {
-    const arr = parseList(params.productCategory);
-    if (arr.length) query.productCategory = { $in: arr };
+    const arr = parseCommaList(params.productCategory);
+    if (arr && arr.length) query.productCategory = { $in: arr };
   }
-
-  // ---------------- TAGS (FINAL FIX) ----------------
   if (params.tags) {
-    const arr = parseList(params.tags);
-
-    if (arr.length) {
-      query.$or = arr.map((tag) => ({
-        tags: { $regex: new RegExp(tag, "i") } // case-insensitive search
-      }));
-    }
+    const arr = parseCommaList(params.tags);
+    if (arr && arr.length) query.tags = { $in: arr };
+  }
+  if (params.paymentMethod) {
+    const arr = parseCommaList(params.paymentMethod);
+    if (arr && arr.length) query.paymentMethod = { $in: arr };
   }
 
-  // ---------------- DATE RANGE ----------------
-  if (params.fromDate || params.toDate) {
+  // Age range: e.g. 18-25
+  if (params.ageRange) {
+    const [min, max] = params.ageRange.split('-').map(x => parseInt(x, 10));
+    if (!isNaN(min) && !isNaN(max)) query.age = { $gte: min, $lte: max };
+    else if (!isNaN(min)) query.age = { $gte: min };
+    else if (!isNaN(max)) query.age = { $lte: max };
+  }
+
+  // Date range: startDate, endDate in ISO YYYY-MM-DD
+  if (params.startDate || params.endDate) {
     query.date = {};
-    if (params.fromDate) query.date.$gte = new Date(params.fromDate);
-    if (params.toDate) query.date.$lte = new Date(params.toDate);
+    if (params.startDate) query.date.$gte = new Date(params.startDate);
+    if (params.endDate) {
+      // include the whole day
+      const d = new Date(params.endDate);
+      d.setHours(23,59,59,999);
+      query.date.$lte = d;
+    }
   }
 
   return query;
