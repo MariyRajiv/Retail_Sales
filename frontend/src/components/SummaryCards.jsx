@@ -13,11 +13,12 @@ export default function SummaryCards({ summary }) {
       </div>
       <div className="bg-white p-4 rounded shadow-sm">
         <div className="text-sm text-gray-500">Total Discount</div>
-        <div className="text-2xl font-semibold">₹{Math.ceil(summary.totalDiscount ?? 0).toLocaleString()}</div>
+        <div className="text-2xl font-semibold">₹{Math.ceil(parseFloat(summary.totalDiscount) || 0).toFixed(0).toLocaleString()}</div>
       </div>
     </div>
   );
 }
+
 
 
 
