@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-
+import Navbar from "../components/Navbar";
 import Sidebar from "../components/SideBar";
 import TopFilters from "../components/TopFilters";
 import SalesList from "../components/SalesList";
@@ -35,7 +35,38 @@ const [sortBy, setSortBy] = useState([]);
   // --------------------------
   // FETCH SALES LIST
   // --------------------------
- const fetchSummaryData = async () => {
+  const fetchSales = async () => {
+    const res = await api.get("/sales", {
+      params: {
+        page,
+        pageSize,
+        search,
+        customerRegion,
+        gender,
+        ageRange,
+        productCategory,
+        tags,
+        paymentMethod,
+        startDate,
+        endDate,
+
+        // FIX: send sortBy directly ex: "date:asc"
+        sortBy: sortBy.join(","), 
+      },
+    });
+
+    setItems(res.data.results || []);
+    setTotalCount(res.data.total || 0);
+
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  // --------------------------
+  // FETCH SUMMARY DATA
+  // --------------------------
+  const fetchSummaryData = async () => {
   const res = await api.get("/sales/summary", {
     params: {
       search,
@@ -53,35 +84,9 @@ const [sortBy, setSortBy] = useState([]);
   // Apply Math.ceil() here to make sure the values are rounded up before passing to the component
   setTotalUnits(res.data.totalUnitsSold ? Math.round(res.data.totalUnitsSold) : 0);
   setTotalAmount(res.data.totalAmount ? Math.round(res.data.totalAmount) : 0);
-  setTotalDiscount(res.data.totalDiscount ? Math.ceil(res.data.totalDiscount) : 0); // Apply Math.ceil() her
+  setTotalDiscount(res.data.totalDiscount ? Math.ceil(res.data.totalDiscount) : 0); // Apply Math.ceil() here
+};
 
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
-  // --------------------------
-  // FETCH SUMMARY DATA
-  // --------------------------
-  const fetchSummaryData = async () => {
-    const res = await api.get("/sales/summary", {
-      params: {
-        search,
-        customerRegion,
-        gender,
-        ageRange,
-        productCategory,
-        tags,
-        paymentMethod,
-        startDate,
-        endDate,
-      },
-    });
-
-    setTotalUnits(res.data.totalUnitsSold || 0);
-    setTotalAmount(res.data.totalAmount || 0);
-    setTotalDiscount(res.data.totalDiscount || 0);
-  };
 
   // --------------------------
   // EFFECT
@@ -122,7 +127,7 @@ const [sortBy, setSortBy] = useState([]);
 
   return (
    <div className="min-h-screen bg-gray-100 flex flex-col">
-
+  <Navbar />
 
   <div className="flex flex-row flex-1">
     {/* Sidebar */}
@@ -186,5 +191,3 @@ const [sortBy, setSortBy] = useState([]);
 
   );
 }
-
-
