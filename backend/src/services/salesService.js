@@ -4,47 +4,76 @@ const buildQuery = require('../utils/buildQuery');
 async function querySales({ params, page, pageSize, sortBy, sortOrder }) {
   const query = buildQuery(params);
 
-  // --------------------------------------
-  // FIELD MAPPING (Frontend → MongoDB)
-  // --------------------------------------
-  const sortFieldMap = {
-    date: "date",
-    quantity: "quantity",
-    customername: "customerName",
-    totalamount: "totalAmount",
-    finalamount: "finalAmount",
-    age: "age",
+  // ------------------------
+  // FIELD TYPES
+  // ------------------------
+  const numericFields = ["quantity", "totalAmount", "finalAmount", "age"];
+  const stringFields = ["customerName", "productName", "productCategory", "paymentMethod", "gender", "customerRegion"];
+  const dateFields = ["date"];
+
+  let sort = {};
+
+  if (dateFields.includes(sortBy)) {
+    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+  } else if (numericFields.includes(sortBy)) {
+    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+  } else if (stringFields.includes(sortBy)) {
+    // Use collation for case-insensitive string sorting
+    sort[sortBy] = sortOrder === "asc" ? 1 : -1;
+  } else {
+    // Default sort by date descending
+    sort.date = -1;
+  }
+
+  const projection = {
+    transactionId: 1,
+    date: 1,
+    customerId: 1,
+    customerName: 1,
+    phoneNumber: 1,
+    gender: 1,
+    age: 1,
+    customerRegion: 1,
+    productCategory: 1,
+    productName: 1,
+    quantity: 1,
+    totalAmount: 1,
+    finalAmount: 1,
+    paymentMethod: 1,
+    employeeName: 1
   };
 
-  const mongoSortField = sortFieldMap[sortBy?.toLowerCase()] || "date";
-
-  // --------------------------------------
-  // SORTING OBJECT
-  // --------------------------------------
-  const sortConfig = {
-    [mongoSortField]: sortOrder === "asc" ? 1 : -1
-  };
-
-  // --------------------------------------
-  // PAGINATION
-  // --------------------------------------
   const skip = (page - 1) * pageSize;
 
-  const results = await Sale.find(query)
-    .sort(sortConfig)
-    .skip(skip)
-    .limit(pageSize)
-    .lean();
+  let cursor;
 
+  if (stringFields.includes(sortBy)) {
+    // Case-insensitive string sorting
+    cursor = Sale.find(query, projection)
+      .collation({ locale: "en", strength: 2 }) // ensures A-Z / a-z treated the same
+      .sort(sort)
+      .skip(skip)
+      .limit(pageSize);
+  } else {
+    cursor = Sale.find(query, projection)
+      .sort(sort)
+      .skip(skip)
+      .limit(pageSize);
+  }
+
+  const results = await cursor.exec();
   const total = await Sale.countDocuments(query);
 
-  return { results, total };
+  return { results, total, page, pageSize };
 }
 
+// ------------------------
+// SUMMARY
+// ------------------------
 async function summary(params) {
   const query = buildQuery(params);
 
-  const data = await Sale.aggregate([
+  const agg = await Sale.aggregate([
     { $match: query },
     {
       $group: {
@@ -52,31 +81,25 @@ async function summary(params) {
         totalUnitsSold: { $sum: "$quantity" },
         totalAmount: { $sum: "$totalAmount" },
         totalFinalAmount: { $sum: "$finalAmount" },
-      },
-    },
-    {
-      $project: {
-        _id: 0,
-        totalUnitsSold: 1,
-        totalAmount: 1,
-        totalFinalAmount: 1,
-        totalDiscount: { $subtract: ["$totalAmount", "$totalFinalAmount"] }, // Correct discount
-      },
-    },
+        count: { $sum: 1 }
+      }
+    }
   ]);
 
-  const result = data[0] || {
+  const data = agg[0] || {
     totalUnitsSold: 0,
     totalAmount: 0,
     totalFinalAmount: 0,
-    totalDiscount: 0,
+    count: 0
   };
 
+  const totalDiscount = data.totalAmount - data.totalFinalAmount;
+
   return {
-    totalUnitsSold: Math.round(result.totalUnitsSold),
-    totalAmount: Math.round(result.totalAmount),
-    totalFinalAmount: Math.round(result.totalFinalAmount),
-    totalDiscount: Math.round(result.totalDiscount),
+    totalUnitsSold: data.totalUnitsSold,
+    totalAmount: data.totalAmount,
+    totalDiscount,
+    count: data.count
   };
 }
 
