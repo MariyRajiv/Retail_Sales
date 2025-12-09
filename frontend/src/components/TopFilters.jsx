@@ -183,22 +183,25 @@ export default function TopFilters({
       </div>
 
       {/* SORTING */}
-      <Dropdown
-        label="Sort By"
-        width="w-56"
-        options={[
-          { label: "Date (Newest First)", value: "date:desc" },
-          { label: "Date (Oldest First)", value: "date:asc" },
-          { label: "Quantity (High-Low)", value: "Quantity:desc" },
-          { label: "Quantity (Low-High)", value: "Quantity:asc" },
-          { label: "Customer Name (A-Z)", value: "CustomerName:asc" },
-          { label: "Customer Name (Z-A)", value: "CustomerName:desc" },
-        ]}
-        value={sortBy}
-        onChange={setSortBy}
-        multi={false}
-        onFetchData={onFetchData} // ✅ ensure sort triggers fetch
-      />
+<Dropdown
+  label="Sort By"
+  width="w-56"
+  options={[
+    { label: "Date (Newest First)", value: "date:desc" },
+    { label: "Date (Oldest First)", value: "date:asc" },
+    { label: "Quantity (High-Low)", value: "quantity:desc" },
+    { label: "Quantity (Low-High)", value: "quantity:asc" },
+    { label: "Customer Name (A-Z)", value: "customerName:asc" },
+    { label: "Customer Name (Z-A)", value: "customerName:desc" },
+  ]}
+  value={sortBy}           // Now sortBy is an array
+  onChange={setSortBy}
+  multi={true}             // Enable multi-select
+  onFetchData={onFetchData}
+/>
+
+
+
     </div>
   );
 }
