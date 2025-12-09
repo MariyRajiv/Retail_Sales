@@ -12,10 +12,34 @@ function useOutsideClick(ref, callback) {
   }, [ref, callback]);
 }
 
-function Dropdown({ label, options, value, onChange, width = "w-48" }) {
+function Dropdown({ label, options, value, onChange, multi = true, width = "w-48", onFetchData }) {
   const [open, setOpen] = useState(false);
   const ref = useRef();
   useOutsideClick(ref, () => setOpen(false));
+
+  const handleSelect = (optValue) => {
+    if (multi) {
+      const currentValue = Array.isArray(value) ? value : [];
+      const newValue = currentValue.includes(optValue)
+        ? currentValue.filter(v => v !== optValue)
+        : [...currentValue, optValue];
+      onChange(newValue);
+    } else {
+      onChange(optValue);
+      setOpen(false);
+    }
+
+    // ✅ Trigger data fetch on selection change
+    if (onFetchData) onFetchData();
+  };
+
+  const displayLabel = () => {
+    if (multi) {
+      const currentValue = Array.isArray(value) ? value : [];
+      return currentValue.length ? currentValue.join(", ") : label;
+    }
+    return value || label;
+  };
 
   return (
     <div className="relative" ref={ref}>
@@ -23,22 +47,23 @@ function Dropdown({ label, options, value, onChange, width = "w-48" }) {
         onClick={() => setOpen(!open)}
         className="bg-gray-100 px-4 py-2 rounded-md border border-gray-200 shadow-sm flex items-center gap-2 text-sm text-gray-700 hover:bg-gray-200 transition whitespace-nowrap"
       >
-        {value ? options.find(o => o.value === value)?.label || value : label}
+        {displayLabel()}
         <FiChevronDown className="text-gray-600" />
       </button>
 
       {open && (
-        <div className={`absolute mt-2 ${width} bg-white border border-gray-200 rounded-md shadow-lg z-50`}>
-          {options.map((opt) => (
+        <div className={`absolute mt-2 ${width} bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-60 overflow-y-auto`}>
+          {options.map(opt => (
             <div
               key={opt.value}
-              onClick={() => {
-                onChange(opt.value);
-                setOpen(false);
-              }}
-              className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
+              onClick={() => handleSelect(opt.value)}
+              className={`px-4 py-2 text-sm cursor-pointer hover:bg-gray-100 ${
+                (multi && Array.isArray(value) && value.includes(opt.value)) || (!multi && value === opt.value)
+                  ? "bg-gray-200 font-medium"
+                  : ""
+              }`}
             >
-              {opt.label}
+              {opt.label} {((multi && Array.isArray(value) && value.includes(opt.value)) || (!multi && value === opt.value)) && <span className="ml-2">✔</span>}
             </div>
           ))}
         </div>
@@ -58,8 +83,17 @@ export default function TopFilters({
   startDate, setStartDate,
   endDate, setEndDate,
   sortBy, setSortBy,
-  onReset
+  onReset,
+  onFetchData
 }) {
+  // ✅ fetch data when filters change
+  useEffect(() => {
+    if (onFetchData) onFetchData();
+  }, [
+    search, customerRegion, gender, ageRange, productCategory,
+    tags, paymentMethod, startDate, endDate, sortBy
+  ]);
+
   return (
     <div className="w-full bg-white p-4 rounded-md shadow-sm flex flex-wrap gap-3 items-center">
 
@@ -85,85 +119,50 @@ export default function TopFilters({
       {/* FILTER DROPDOWNS */}
       <Dropdown
         label="Customer Region"
-        options={[
-          { label: "East", value: "East" },
-          { label: "West", value: "West" },
-          { label: "North", value: "North" },
-          { label: "South", value: "South" },
-          { label: "Central", value: "Central" },
-        ]}
+        options={[{ label: "East", value: "East" }, { label: "West", value: "West" }, { label: "North", value: "North" }, { label: "South", value: "South" }, { label: "Central", value: "Central" }]}
         value={customerRegion}
         onChange={setCustomerRegion}
+        onFetchData={onFetchData}
       />
 
       <Dropdown
         label="Gender"
-        options={[
-          { label: "Male", value: "Male" },
-          { label: "Female", value: "Female" },
-          { label: "Other", value: "Other" },
-        ]}
+        options={[{ label: "Male", value: "Male" }, { label: "Female", value: "Female" }, { label: "Other", value: "Other" }]}
         value={gender}
         onChange={setGender}
+        onFetchData={onFetchData}
       />
 
       <Dropdown
         label="Age Range"
-        options={[
-          { label: "18-25", value: "18-25" },
-          { label: "26-35", value: "26-35" },
-          { label: "36-50", value: "36-50" },
-          { label: "50+", value: "50+" },
-        ]}
+        options={[{ label: "18-25", value: "18-25" }, { label: "26-35", value: "26-35" }, { label: "36-50", value: "36-50" }, { label: "51-70", value: "51-70" }]}
         value={ageRange}
         onChange={setAgeRange}
+        onFetchData={onFetchData}
       />
 
       <Dropdown
         label="Product Category"
-        options={[
-          { label: "Electronics", value: "Electronics" },
-          { label: "Clothing", value: "Clothing" },
-          { label: "Beauty", value: "Beauty" },
-          { label: "Sports", value: "Sports" },
-          { label: "Furniture", value: "Furniture" },
-          { label: "Accessories", value: "Accessories" },
-        ]}
+        options={[{ label: "Electronics", value: "Electronics" }, { label: "Clothing", value: "Clothing" }, { label: "Beauty", value: "Beauty" }, { label: "Sports", value: "Sports" }, { label: "Furniture", value: "Furniture" }, { label: "Accessories", value: "Accessories" }]}
         value={productCategory}
         onChange={setProductCategory}
+        onFetchData={onFetchData}
       />
 
       <Dropdown
         label="Tags"
-        options={[
-          { label: "fitness", value: "fitness" },
-          { label: "wellness", value: "wellness" },
-          { label: "gaming", value: "gaming" },
-          { label: "tech", value: "tech" },
-          { label: "luxury", value: "luxury" },
-          { label: "accessory", value: "accessory" },
-          { label: "home", value: "home" },
-          { label: "storage", value: "storage" },
-          { label: "organic", value: "organic" },
-          { label: "makeup", value: "makeup" },
-          { label: "fashion", value: "fashion" },
-        ]}
+        options={[{ label: "fitness", value: "fitness" }, { label: "wellness", value: "wellness" }, { label: "gaming", value: "gaming" }, { label: "tech", value: "tech" }, { label: "luxury", value: "luxury" }, { label: "accessory", value: "accessory" }, { label: "home", value: "home" }, { label: "storage", value: "storage" }, { label: "organic", value: "organic" }, { label: "makeup", value: "makeup" }, { label: "fashion", value: "fashion" }]}
         value={tags}
         onChange={setTags}
+        onFetchData={onFetchData}
       />
 
       <Dropdown
         label="Payment Method"
-        options={[
-          { label: "UPI", value: "UPI" },
-          { label: "Credit Card", value: "Credit Card" },
-          { label: "Debit Card", value: "Debit Card" },
-          { label: "Cash", value: "Cash" },
-          { label: "Net Banking", value: "Net Banking" },
-          { label: "Wallet", value: "Wallet" },
-        ]}
+        options={[{ label: "UPI", value: "UPI" }, { label: "Credit Card", value: "Credit Card" }, { label: "Debit Card", value: "Debit Card" }, { label: "Cash", value: "Cash" }, { label: "Net Banking", value: "Net Banking" }, { label: "Wallet", value: "Wallet" }]}
         value={paymentMethod}
         onChange={setPaymentMethod}
+        onFetchData={onFetchData}
       />
 
       {/* DATE RANGE */}
@@ -188,15 +187,17 @@ export default function TopFilters({
         label="Sort By"
         width="w-56"
         options={[
-          { label: "Date (Newest First)", value: "Date_desc" },
-          { label: "Date (Oldest First)", value: "Date_asc" },
-          { label: "Quantity (High-Low)", value: "Quantity_desc" },
-          { label: "Quantity (Low-High)", value: "Quantity_asc" },
-          { label: "Customer Name (A-Z)", value: "CustomerName_asc" },
-          { label: "Customer Name (Z-A)", value: "CustomerName_desc" },
+          { label: "Date (Newest First)", value: "date:desc" },
+          { label: "Date (Oldest First)", value: "date:asc" },
+          { label: "Quantity (High-Low)", value: "Quantity:desc" },
+          { label: "Quantity (Low-High)", value: "Quantity:asc" },
+          { label: "Customer Name (A-Z)", value: "CustomerName:asc" },
+          { label: "Customer Name (Z-A)", value: "CustomerName:desc" },
         ]}
         value={sortBy}
         onChange={setSortBy}
+        multi={false}
+        onFetchData={onFetchData} // ✅ ensure sort triggers fetch
       />
     </div>
   );
